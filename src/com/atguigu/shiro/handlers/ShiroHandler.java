@@ -22,6 +22,7 @@ public class ShiroHandler {
 		System.out.println(service.getClass().getName());
 		service.testMethod();
 		System.out.println();
+		System.out.println("我是在本地更新！");
 		return "success";
 	}
 	
