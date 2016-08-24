@@ -25,7 +25,7 @@ public class ShiroHandler {
 		System.out.println("啊！听说要有冲突发生！！");
 		System.out.println("哥们是来解决冲突的！");
 		System.out.println("我是在本地更新！");
-		System.out.println("我是另一个程序员的说！");
+		System.out.println("继续改继续改！");
 		return "success";
 	}
 	
