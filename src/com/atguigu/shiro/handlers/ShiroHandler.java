@@ -21,6 +21,7 @@ public class ShiroHandler {
 	public String test() {
 		System.out.println(service.getClass().getName());
 		service.testMethod();
+		System.out.println();
 		return "success";
 	}
 	
