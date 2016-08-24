@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!--  
+		Spring 和 shiro 進行整合.
+		1. 加入 Spring 及 SpringMVC
+		2. 加入 shiro 的 jar 包
+		3. 在 Spring 的配置文件中配置 shiro
+		3.1 參考 shiro-root-1.2.2\samples\spring\src\main\webapp\WEB-INF\applicationContext.xml
+		4. 配置 CacheManager 實例
+		4.1 使用的是 ehcache, 所以需要加入 ehcache 的 jar 包.
+		4.2 在類路徑下加入 ehcache 的配置文件
+		5. 配置 Realm:
+		5.1 通常情況下 Realm 需要繼承自 org.apache.shiro.realm.AuthorizingRealm
+		6. 配置 securityManager.
+		6.1 指向 org.apache.shiro.web.mgt.DefaultWebSecurityManager
+		6.2 需要注入 cacheManager 和 realm 這兩個屬性. 
+		7. 配置可以自動調用 Spring 中配置的 shiro bean 生命週期方法的 LifecycleBeanPostProcessor
+		8. 配置在啟用 shiro 注解兩個 bean. 前提是必須配置 LifecycleBeanPostProcessor
+		9. 配置 Shiro Filter. 
+		9.1 filterChainDefinitions 屬性用來配置需要攔截的資源和訪問這些資源需要的權限. 
+		10. 在 web.xml 文件中配置 shiroFilter. 注意: filter-name 必須和 9 中配置的 ShiroFilter 的 id 一致. 
+		
+	-->
+	<!--二级缓存，需要配置一个属性，读取类路径下的ehcache.xml文件，这个配置文件需要F:\OpenSources\shiro\shiro-root-1.2.2\samples\spring\src\main\resources中找-->
+	<!-- 缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache.xml"/> 
+    </bean>    
+    
+    <!-- 配置 Realm,需要自己写一个Realm类，继承AuthorizingRealm--> 
+    <!-- 权限管理器   在属性中配置MD5加密-->
+    <bean id="realm" class="com.atguigu.shiro.realms.MyRealm">
+    	<property name="credentialsMatcher">
+    		<bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+    			<!--指定加密算法  -->
+    			<property name="hashAlgorithmName" value="MD5"></property>
+    			<!--指定加密的次数  -->
+    			<property name="hashIterations" value="1024"></property>
+    		</bean>
+    	</property>
+    </bean>     
+    <!-- 安全管理器，管理缓存管理器和权限管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="realm" ref="realm"/>
+    </bean>
+    
+	<!-- 配置生命周期的方法 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+	
+	<!-- 配置启用shiro注解的两个bean,前提是必须先配置上面那个 -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+	
+    <!-- 配置shiroFilter,并且需要在web.xml中配置shiroFilter -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/login.jsp"/>
+        <property name="unauthorizedUrl" value="/unauthorized.jsp"/>
+        
+        <!--  
+        anon: 可以被匿名访问的.即不经过认证,没有权限也可以访问.
+        authc: 必须经过认证(登录)后才可以访问的资源 
+        roles: 具体的权限过滤器.
+        logout: 登出. 
+                  注意: URL 权限采取第一次匹配优先的方式
+        -->
+        <property name="filterChainDefinitions">
+            <value>
+                /login.jsp = anon
+                /shiro/login = anon
+                /shiro-logout = logout
+                
+                /user.jsp = roles[user]
+                /admin.jsp = roles[admin]
+                
+                # everything else requires authentication:
+                /** = authc
+            </value>
+        </property>
+    </bean>
+	
+</beans>
