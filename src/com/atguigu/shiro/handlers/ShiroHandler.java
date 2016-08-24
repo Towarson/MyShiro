@@ -23,6 +23,7 @@ public class ShiroHandler {
 		service.testMethod();
 		System.out.println("哥们是来找事的！！就是要搞个大冲突！");
 		System.out.println("啊！听说要有冲突发生！！");
+		System.out.println("哥们是来解决冲突的！");
 		System.out.println("我是在本地更新！");
 		System.out.println("我是另一个程序员的说！");
 		return "success";
