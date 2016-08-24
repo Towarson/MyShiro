@@ -23,6 +23,7 @@ public class ShiroHandler {
 		service.testMethod();
 		System.out.println();
 		System.out.println("我是在本地更新！");
+		System.out.println("我是另一个程序员的说！")
 		return "success";
 	}
 	
